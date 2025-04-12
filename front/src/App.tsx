@@ -1,14 +1,18 @@
 import './App.css'
-import {ChangeEventHandler, useEffect, useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 
 import axios from "axios";
-import {Button, CircularProgress, LinearProgress, Slider} from "@mui/material";
+import PlayCircleIcon from '@mui/icons-material/PlayCircle';
+import PauseCircleIcon from '@mui/icons-material/PauseCircle';
+import {Button, CircularProgress, IconButton, ListItemButton, Slider} from "@mui/material";
+import List from '@mui/material/List';
 
 
 type TrackType = {
     id: string;
     title: string;
     url: string;
+    duration: number;
 }
 
 function App() {
@@ -19,32 +23,34 @@ function App() {
     const [currentTime, setCurrentTime] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     useEffect(() => {
-        axios.get('http://localhost:3000/tracks')
+        axios.get('http://localhost:3000/api/tracks/')
             .then((res) => setTracks(res.data))
             .catch(() => console.log("Error with list from server"));
     }, []);
-
+    console.log(tracks)
     useEffect(() => {
-        const audio = audioRef.current;
+        if (audioRef.current) {
+            const audio = audioRef.current;
+            const updateTime = () => {
+                setCurrentTime(audio.currentTime);
+                if (audio.currentTime === audio.duration) {
+                    setCurrentTrack(prevState => prevState + 1)
+                }
+            };
+            const updateDuration = () => {
+                setDuration(audio.duration);
+            }
+            // Подключаем слушатель
+            audio.addEventListener('timeupdate', updateTime);
+            audio.addEventListener('loadedmetadata', updateDuration);
+            // Убираем слушатель при размонтировании компонента
+            return () => {
+                audio.removeEventListener('timeupdate', updateTime);
+                audio.removeEventListener('loadedmetadata', updateDuration);
+            };
+        }
 
-        if (!audio) return;
-
-        const handleLoadedMetadata = () => {
-            setDuration(audio.duration);
-        };
-
-        const handleTimeUpdate = () => {
-            setCurrentTime(audio.currentTime);
-        };
-
-        audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-        audio.addEventListener('timeupdate', handleTimeUpdate);
-
-        return () => {
-            audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-            audio.removeEventListener('timeupdate', handleTimeUpdate);
-        };
-    }, [currentTrack]);
+    }, [currentTime, tracks]);
 
 
     const formatTime = (time: number): string => {
@@ -69,11 +75,20 @@ function App() {
     const handlePlayTrack = () => {
         if (audioRef.current) {
             audioRef.current.play();
+            setIsPlaying(true);
             audioRef.current.autoplay = true;
         }
 
     }
-
+    const handlePauseTrack = () => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+        }
+    }
+    const handleCurrentTrack = (index: number) => {
+        setCurrentTrack(index);
+    }
     return (
         <div className="App">
             {tracks.length === 0 ?
@@ -82,17 +97,25 @@ function App() {
                 <>
                     <audio ref={audioRef} src={tracks[currentTrack].url}></audio>
                     <Button onClick={handleNextTrack}>Next</Button>
-                    <Button onClick={handlePlayTrack}>Play</Button>
+                    {isPlaying ?
+                        <IconButton onClick={handlePauseTrack}>
+                            <PauseCircleIcon color="secondary"/>
+                        </IconButton>
+                        :
+                        <IconButton onClick={handlePlayTrack}>
+                            <PlayCircleIcon color="primary"/>
+                        </IconButton>}
+
+
                     <Button onClick={handlePrevTrack}>Prev</Button>
                     <Slider
                         min={0}
                         max={duration}
                         value={currentTime}
-                        onChange={(e: Event, value) => {
+                        onChange={(_e: Event, value) => {
                             if (audioRef.current && typeof value === 'number') {
                                 audioRef.current.currentTime = value;
                                 setCurrentTime(value);
-                                console.log(e)
                             }
                         }}
                         sx={{
@@ -107,6 +130,13 @@ function App() {
 
                 </>}
 
+            <List>
+                {tracks.map((track: TrackType, index) => (
+                    <ListItemButton onClick={() => handleCurrentTrack(index)}>
+                        Title: {track.title}
+                    </ListItemButton>
+                ))}
+            </List>
         </div>
     )
 }

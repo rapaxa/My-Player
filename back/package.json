@@ -1,20 +1,15 @@
 {
-  "name": "player",
+  "name": "your-project-name",
   "version": "1.0.0",
+  "main": "src/app.js",
   "type": "module",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
+    "express": "^4.17.1",
     "cors": "^2.8.5",
-    "express": "^4.21.2",
-    "jsmediatags": "^3.9.7",
-    "music-metadata": "^11.0.2",
-    "uid": "^2.0.2",
-    "uuid": "^11.1.0"
+    "music-metadata": "^7.9.0",
+    "uuid": "^8.3.2"
   }
 }
