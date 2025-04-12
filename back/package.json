@@ -1,0 +1,20 @@
+{
+  "name": "player",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jsmediatags": "^3.9.7",
+    "music-metadata": "^11.0.2",
+    "uid": "^2.0.2",
+    "uuid": "^11.1.0"
+  }
+}
